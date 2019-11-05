@@ -6,7 +6,7 @@
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<sys/select.h>
-#define num (sizeof(fs_set)*8)
+#define num (sizeof(fd_set)*8)
 using namespace std;
 class SelectServer{
     private:
@@ -27,8 +27,8 @@ class SelectServer{
             struct sockaddr_in local;
             local.sin_family=AF_INET;
             local.sin_port=htons(port);
-            local.sin_addr.s_addr=htonl(INADDR_ANY);
-            if(bind(lsock,&local,sizeof(local))<0)
+            local.sin_addr.s_addr=inet_addr(INADDR_ANY);
+            if(bind(lsock,(struct sockaddr*)&local,sizeof(local))<0)
             {
             cerr<<"bond false..."<<endl;
             exit(2);
@@ -42,8 +42,8 @@ class SelectServer{
         void RunServer()
         {
              int arr[num];
-             fs_set lset;
-             struct timeval={3,0};
+             fd_set lset;
+             struct timeval t={3,0};
              int i=1;
              arr[0]=lsock;
              int max=lsock;
@@ -59,7 +59,7 @@ class SelectServer{
                 {
                     if(arr[i]>0)
                     {
-                    FD_SET(lsock,arr[i]);
+                    FD_SET(lsock,&lset);
                     if(arr[i]>max)
                         max=arr[i];
                     }
@@ -79,7 +79,7 @@ class SelectServer{
                              {//此时，有新链接来了，处理它
                                         struct sockaddr_in peer;
                                         socklen_t len=0;
-                                        int sock=accept(lsock,&peer,&len);
+                                        int sock=accept(lsock,(struct sockaddr* )&peer,&len);
                                         if(sock==-1)
                                         {
                                             perror("accpet");
@@ -88,7 +88,8 @@ class SelectServer{
                                         else
                                         {//成功接收一个新链接
                                         cout<<"get a new line..."<<endl;
-                                        for(int j=0;j<num;j++)
+                                        int j=0;
+                                        for(j=0;j<num;j++)
                                          {
                                             if(arr[j]==-1)
                                             break;
@@ -103,7 +104,7 @@ class SelectServer{
                            ssize_t s=recv(arr[i],buf,sizeof(buf),0);
                                 if(s<0)
                                 {//读取失败
-                                perror(recv);
+                                perror("recv");
                                 close(arr[i]);
                                 arr[i]=-1;
                                 }
@@ -125,10 +126,13 @@ class SelectServer{
                 }
                 }
            }
+                }
+            }
+        }
         ~SelectServer()
         {
             if(lsock>0)
                 close(lsock);
         }
 
-}
+};

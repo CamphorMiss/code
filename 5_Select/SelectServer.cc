@@ -7,7 +7,7 @@ int main(int arc,char* argv[])
     cout<<"Uage:"<<argv[0]<<"port "<<endl;
     exit(1);
     }
-    SelectServer* s=new SelectServer(argv[1]);
+    SelectServer* s=new SelectServer((int)*argv[1]);
     s->InitServer();
     s->RunServer();
     return 0;
