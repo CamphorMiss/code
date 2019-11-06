@@ -27,7 +27,7 @@ class SelectServer{
             struct sockaddr_in local;
             local.sin_family=AF_INET;
             local.sin_port=htons(port);
-            local.sin_addr.s_addr=inet_addr(INADDR_ANY);
+            local.sin_addr.s_addr=htonl(INADDR_ANY);
             if(bind(lsock,(struct sockaddr*)&local,sizeof(local))<0)
             {
             cerr<<"bond false..."<<endl;
@@ -59,12 +59,12 @@ class SelectServer{
                 {
                     if(arr[i]>0)
                     {
-                    FD_SET(lsock,&lset);
+                    FD_SET(arr[i],&lset);
                     if(arr[i]>max)
                         max=arr[i];
                     }
                 }
-                switch(select(max+1,&lset,NULL,NULL,&t))
+                switch(select(max+1,&lset,NULL,NULL,NULL))
                 {
                     case 0:cout<<"timeout..."<<endl;
                         break;
@@ -95,9 +95,11 @@ class SelectServer{
                                             break;
                                          }
                                         if(j==num)
-                                        {
                                          close(sock);
-                                        }
+                                        else
+                                         arr[j]=sock;
+                                       }
+                             }
                            else if(arr[i]!=lsock&&FD_ISSET(arr[i],&lset))
                            {
                            char buf[1024];
@@ -120,15 +122,12 @@ class SelectServer{
                                     cout<<"Client: "<<buf<<endl;
 
                                 }
-                           }
-                                 
+                           }            
                     }             
                 }
                 }
            }
-                }
             }
-        }
         ~SelectServer()
         {
             if(lsock>0)
