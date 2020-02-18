@@ -1,5 +1,5 @@
-pipe:pipe.c
-		gcc -o $@ $^
+main:SelectServer.cc
+		g++ -o $@ $^
 .PHONY:clean
 clean:
-		rm -f pipe
+		rm -f main
